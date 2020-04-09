@@ -2,19 +2,29 @@ import domEvents from './dom-events-to-record'
 import pptrActions from './pptr-actions'
 import Block from './Block'
 
-const importPuppeteer = `const puppeteer = require('puppeteer');\n`
+// const importPuppeteer = `const puppeteer = require('puppeteer');\n`
 
-const header = `const browser = await puppeteer.launch()
-const page = await browser.newPage()`
+// const header = `const browser = await puppeteer.launch()
+// const page = await browser.newPage()`
 
-const footer = `await browser.close()`
+// const footer = `await browser.close()`
 
-const wrappedHeader = `(async () => {
-  const browser = await puppeteer.launch()
-  const page = await browser.newPage()\n`
+// const wrappedHeader = `(async () => {
+//   const browser = await puppeteer.launch()
+//   const page = await browser.newPage()\n`
 
-const wrappedFooter = `  await browser.close()
-})()`
+// const wrappedFooter = `  await browser.close()
+// })()`
+
+const importPuppeteer = ``
+
+const header = ``
+
+const footer = ``
+
+const wrappedHeader = ``
+
+const wrappedFooter = ``
 
 export const defaults = {
   wrapAsync: true,
@@ -26,7 +36,7 @@ export const defaults = {
 }
 
 export default class CodeGenerator {
-  constructor (options) {
+  constructor(options) {
     this._options = Object.assign(defaults, options)
     this._blocks = []
     this._frame = 'page'
@@ -37,22 +47,22 @@ export default class CodeGenerator {
     this._hasNavigation = false
   }
 
-  generate (events) {
+  generate(events) {
     return importPuppeteer + this._getHeader() + this._parseEvents(events) + this._getFooter()
   }
 
-  _getHeader () {
+  _getHeader() {
     console.debug(this._options)
     let hdr = this._options.wrapAsync ? wrappedHeader : header
     hdr = this._options.headless ? hdr : hdr.replace('launch()', 'launch({ headless: false })')
     return hdr
   }
 
-  _getFooter () {
+  _getFooter() {
     return this._options.wrapAsync ? wrappedFooter : footer
   }
 
-  _parseEvents (events) {
+  _parseEvents(events) {
     console.debug(`generating code for ${events ? events.length : 0} events`)
     let result = ''
 
@@ -116,7 +126,7 @@ export default class CodeGenerator {
     return result
   }
 
-  _setFrames (frameId, frameUrl) {
+  _setFrames(frameId, frameUrl) {
     if (frameId && frameId !== 0) {
       this._frameId = frameId
       this._frame = `frame_${frameId}`
@@ -127,7 +137,7 @@ export default class CodeGenerator {
     }
   }
 
-  _postProcess () {
+  _postProcess() {
     // when events are recorded from different frames, we want to add a frame setter near the code that uses that frame
     if (Object.keys(this._allFrames).length > 0) {
       this._postProcessSetFrames()
@@ -138,13 +148,13 @@ export default class CodeGenerator {
     }
   }
 
-  _handleKeyDown (selector, value) {
+  _handleKeyDown(selector, value) {
     const block = new Block(this._frameId)
     block.addLine({ type: domEvents.KEYDOWN, value: `await ${this._frame}.type('${selector}', '${value}')` })
     return block
   }
 
-  _handleClick (selector) {
+  _handleClick(selector) {
     const block = new Block(this._frameId)
     if (this._options.waitForSelectorOnClick) {
       block.addLine({ type: domEvents.CLICK, value: `await ${this._frame}.waitForSelector('${selector}')` })
@@ -152,18 +162,18 @@ export default class CodeGenerator {
     block.addLine({ type: domEvents.CLICK, value: `await ${this._frame}.click('${selector}')` })
     return block
   }
-  _handleChange (selector, value) {
+  _handleChange(selector, value) {
     return new Block(this._frameId, { type: domEvents.CHANGE, value: `await ${this._frame}.select('${selector}', '${value}')` })
   }
-  _handleGoto (href) {
+  _handleGoto(href) {
     return new Block(this._frameId, { type: pptrActions.GOTO, value: `await ${this._frame}.goto('${href}')` })
   }
 
-  _handleViewport (width, height) {
+  _handleViewport(width, height) {
     return new Block(this._frameId, { type: pptrActions.VIEWPORT, value: `await ${this._frame}.setViewport({ width: ${width}, height: ${height} })` })
   }
 
-  _handleScreenshot (options) {
+  _handleScreenshot(options) {
     let block
 
     if (options && options.x && options.y && options.width && options.height) {
@@ -176,7 +186,8 @@ export default class CodeGenerator {
 
       block = new Block(this._frameId, {
         type: pptrActions.SCREENSHOT,
-        value: `await ${this._frame}.screenshot({ path: 'screenshot_${this._screenshotCounter}.png', clip: { x: ${options.x}, y: ${options.y}, width: ${options.width}, height: ${options.height} } })` })
+        value: `await ${this._frame}.screenshot({ path: 'screenshot_${this._screenshotCounter}.png', clip: { x: ${options.x}, y: ${options.y}, width: ${options.width}, height: ${options.height} } })`
+      })
     } else {
       block = new Block(this._frameId, { type: pptrActions.SCREENSHOT, value: `await ${this._frame}.screenshot({ path: 'screenshot_${this._screenshotCounter}.png' })` })
     }
@@ -185,15 +196,15 @@ export default class CodeGenerator {
     return block
   }
 
-  _handleWaitForNavigation () {
+  _handleWaitForNavigation() {
     const block = new Block(this._frameId)
     if (this._options.waitForNavigation) {
-      block.addLine({type: pptrActions.NAVIGATION, value: `await navigationPromise`})
+      block.addLine({ type: pptrActions.NAVIGATION, value: `await navigationPromise` })
     }
     return block
   }
 
-  _postProcessSetFrames () {
+  _postProcessSetFrames() {
     for (let [i, block] of this._blocks.entries()) {
       const lines = block.getLines()
       for (let line of lines) {
@@ -208,7 +219,7 @@ export default class CodeGenerator {
     }
   }
 
-  _postProcessAddBlankLines () {
+  _postProcessAddBlankLines() {
     let i = 0
     while (i <= this._blocks.length) {
       const blankLine = new Block()

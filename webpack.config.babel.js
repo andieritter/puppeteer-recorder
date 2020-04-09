@@ -65,7 +65,8 @@ const base = {
     ]),
     new HtmlWebpackPlugin({
       template: './src/popup/template.html',
-      chunks: ['popup']}),
+      chunks: ['popup']
+    }),
     new HtmlWebpackPlugin({
       template: './src/options/template.html',
       chunks: ['options'],
